@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
+import firebase from '../../services/firebaseConnection';
+
 export default function Login() {
   const [type, setType] = useState('login');
 
@@ -14,7 +16,31 @@ export default function Login() {
   const [password, setPassword] = useState('');
 
   function handleLogin() {
-    alert('TESTE');
+    if (type === 'login') {
+      // Logar
+      const user = firebase
+        .auth()
+        .signInWithEmailAndPassword(email, password)
+        .then((user) => {
+          console.log(user.user);
+        })
+        .catch((err) => {
+          console.log('Ops parece que deu algum erro.');
+          return;
+        });
+    } else {
+      // Cadastrar
+      const user = firebase
+        .auth()
+        .createUserWithEmailAndPassword(email, password)
+        .then((user) => {
+          console.log(user.user);
+        })
+        .catch((err) => {
+          console.log('Ops parece que deu stá errado!');
+          return;
+        });
+    }
   }
 
   return (

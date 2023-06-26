@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FlatList,
   SafeAreaView,
@@ -19,6 +19,33 @@ export default function App() {
   const [newTask, setNewTask] = useState('');
 
   const [tasks, setTasks] = useState([]);
+
+  useEffect(() => {
+    async function getUser() {
+      if (!user) {
+        return;
+      }
+
+      await firebase
+        .database()
+        .ref('tarefas')
+        .child(user)
+        .once('value', (snapshot) => {
+          setTasks([]);
+
+          snapshot?.forEach((childItem) => {
+            let data = {
+              key: childItem.key,
+              nome: childItem.val().nome,
+            };
+
+            setTasks((oldTasks) => [...oldTasks, data]);
+          });
+        });
+    }
+
+    getUser();
+  }, [user]);
 
   function handleDelete(key) {
     console.log(key);

@@ -7,18 +7,18 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Keyboard,
 } from 'react-native';
 import Login from './src/components/Login';
 import TaskList from './src/components/TaskList';
 
-let tasks = [
-  { key: '1', nome: 'Comprar coca cola' },
-  { key: '2', nome: 'Estudar javascript' },
-];
+import firebase from './src/services/firebaseConnection';
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [newTask, setNewTask] = useState('');
+
+  const [tasks, setTasks] = useState([]);
 
   function handleDelete(key) {
     console.log(key);
@@ -32,6 +32,36 @@ export default function App() {
     return <Login changeStatus={(user) => setUser(user)} />;
   }
 
+  async function handleAdd() {
+    if (newTask === '') {
+      return;
+    }
+
+    let tarefas = await firebase.database().ref('tarefas').child(user);
+    let chave = tarefas.push().key;
+
+    tarefas
+      .child(chave)
+      .set({
+        nome: newTask,
+      })
+      .then(() => {
+        console.log('Tarefa criada');
+
+        const data = {
+          key: chave,
+          nome: newTask,
+        };
+
+        setTasks((oldTasks) => [...oldTasks, data]);
+      });
+
+    // Fecha o teclado
+    Keyboard.dismiss();
+
+    setNewTask('');
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.containerTask}>
@@ -42,7 +72,7 @@ export default function App() {
           onChangeText={(text) => setNewTask(text)}
         />
 
-        <TouchableOpacity style={styles.buttonAdd}>
+        <TouchableOpacity style={styles.buttonAdd} onPress={handleAdd}>
           <Text style={styles.buttonText}>+</Text>
         </TouchableOpacity>
       </View>

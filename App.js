@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   SafeAreaView,
@@ -19,6 +19,10 @@ export default function App() {
   const [newTask, setNewTask] = useState('');
 
   const [tasks, setTasks] = useState([]);
+
+  const [key, setKey] = useState('');
+
+  const inputRef = useRef(null);
 
   useEffect(() => {
     async function getUser() {
@@ -61,19 +65,47 @@ export default function App() {
   }
 
   function handleEdit(data) {
-    console.log(data);
+    setKey(data.key);
+    setNewTask(data.nome);
+    inputRef.current.focus();
   }
 
   if (!user) {
     return <Login changeStatus={(user) => setUser(user)} />;
   }
 
-  async function handleAdd() {
+  function handleAdd() {
     if (newTask === '') {
       return;
     }
 
-    let tarefas = await firebase.database().ref('tarefas').child(user);
+    // Usuário quer editar a tarefa
+    if (key !== '') {
+      firebase
+        .database()
+        .ref('tarefas')
+        .child(user)
+        .child(key)
+        .update({
+          nome: newTask,
+        })
+        .then(() => {
+          // console.log('Atualizado com sucesso');
+          const taskIndex = tasks.findIndex((item) => item.key === key);
+          // console.log(taskIndex);
+          let taskClone = tasks;
+          taskClone[taskIndex].nome = newTask;
+
+          setTasks([...taskClone]);
+        });
+
+      Keyboard.dismiss();
+      setNewTask('');
+      setKey('');
+      return;
+    }
+
+    let tarefas = firebase.database().ref('tarefas').child(user);
     let chave = tarefas.push().key;
 
     tarefas
@@ -106,6 +138,7 @@ export default function App() {
           placeholder="O que vai fazer hoje?"
           value={newTask}
           onChangeText={(text) => setNewTask(text)}
+          ref={inputRef}
         />
 
         <TouchableOpacity style={styles.buttonAdd} onPress={handleAdd}>

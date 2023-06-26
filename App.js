@@ -14,6 +14,8 @@ import TaskList from './src/components/TaskList';
 
 import firebase from './src/services/firebaseConnection';
 
+import Feather from 'react-native-vector-icons/Feather';
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [newTask, setNewTask] = useState('');
@@ -130,8 +132,25 @@ export default function App() {
     setNewTask('');
   }
 
+  function cancelEdit() {
+    setKey('');
+    setNewTask('');
+    Keyboard.dismiss();
+  }
+
   return (
     <SafeAreaView style={styles.container}>
+      {key.length > 0 && (
+        <View style={{ flexDirection: 'row', marginBottom: 8 }}>
+          <TouchableOpacity onPress={cancelEdit}>
+            <Feather name="x-circle" size={20} color="#FF0000" />
+          </TouchableOpacity>
+          <Text style={{ marginLeft: 5, color: '#FF0000' }}>
+            Você está editando uma tarefa!
+          </Text>
+        </View>
+      )}
+
       <View style={styles.containerTask}>
         <TextInput
           style={styles.input}
@@ -164,7 +183,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 25,
+    paddingTop: 30,
     paddingHorizontal: 10,
     backgroundColor: '#F2F6FC',
   },
